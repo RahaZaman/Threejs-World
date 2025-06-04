@@ -12,7 +12,7 @@ This Three.js World application includes the following features:
 *   **Diverse 3D Shapes:** The scene is populated with over 20 primary 3D shapes, including cubes, spheres, cylinders, cones, and toruses, demonstrating the use of various Three.js geometries.
 *   **Texturing:** Objects in the scene are textured using loaded image files (`gray-texture.jpg`, `blue-texture.jpg`), showcasing texture mapping onto 3D geometry.
 *   **Animation:** Multiple objects within the scene are animated with rotation, adding dynamic visual interest to the world.
-*   **3D Model Loading:** A custom 3D model in OBJ format (`Goldfish_01.obj`) with its associated material file (`Goldfish_01.mtl`) is loaded and displayed in the scene.
+*   **3D Model Loading:** A custom 3D model in OBJ format (`Drone.obj`) with its associated material file (`Drone.mtl`) is loaded and displayed in the scene.
 *   **Multiple Light Sources:** The scene is illuminated by a combination of Ambient, Directional, and Hemisphere lights, providing varied lighting effects.
 *   **Interactive Light Controls:** A dedicated UI panel allows users to dynamically adjust the intensity of all lights and the position (direction) of the directional light.
 *   **Textured Skybox:** A panoramic image (`new-york-skybox.jpg`) is loaded and used as a textured skybox background, creating an immersive environment.
@@ -51,7 +51,7 @@ Potential areas for future development include:
 - Developed independently as part of CSE 160: Introduction to Computer Graphics at UC Santa Cruz.
 - Built upon the Three.js library and its official examples/addons.
 - Special thanks to the course instructors for their guidance and feedback.
-- 3D model (`Goldfish_01.obj`, `Goldfish_01.mtl`) obtained from Poly Pizza.
+- 3D model (`Goldfish_01.obj`, `Goldfish_01.mtl`) obtained from [Poly Pizza](https://poly.pizza/m/DNbUoMtG3H).
 
 ---
 

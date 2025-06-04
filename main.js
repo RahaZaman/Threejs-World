@@ -53,7 +53,7 @@ function main() {
 	// Load the panoramic skybox texture
 	const skyboxTexture = textureLoader.load('img/new-york-skybox.jpg', () => {
 		scene.background = skyboxTexture;
-		skyboxTexture.mapping = THREE.EquirectangularReflectionMapping; // Use equirectangular mapping for panoramic image
+		skyboxTexture.mapping = THREE.EquirectangularReflectionMapping;
 	});
 	skyboxTexture.colorSpace = THREE.SRGBColorSpace; // Set color space
 
@@ -81,8 +81,8 @@ function main() {
 		// Ambient light controls
 		const ambientIntensity = document.getElementById('ambient-intensity');
 		const ambientIntensityValue = document.getElementById('ambient-intensity-value');
-		ambientIntensity.value = lights.ambient.intensity; // Initialize slider value
-		ambientIntensityValue.textContent = lights.ambient.intensity.toFixed(2); // Initialize text value
+		ambientIntensity.value = lights.ambient.intensity;
+		ambientIntensityValue.textContent = lights.ambient.intensity.toFixed(2);
 		ambientIntensity.addEventListener('input', (e) => {
 			const value = parseFloat(e.target.value);
 			lights.ambient.intensity = value;
@@ -99,14 +99,14 @@ function main() {
 		const directionalPosZ = document.getElementById('directional-pos-z');
 		const directionalPosZValue = document.getElementById('directional-pos-z-value');
 
-		directionalIntensity.value = lights.directional.intensity; // Initialize slider value
-		directionalIntensityValue.textContent = lights.directional.intensity.toFixed(2); // Initialize text value
-		directionalPosX.value = lights.directional.position.x; // Initialize slider value
-		directionalPosXValue.textContent = lights.directional.position.x.toFixed(1); // Initialize text value
-		directionalPosY.value = lights.directional.position.y; // Initialize slider value
-		directionalPosYValue.textContent = lights.directional.position.y.toFixed(1); // Initialize text value
-		directionalPosZ.value = lights.directional.position.z; // Initialize slider value
-		directionalPosZValue.textContent = lights.directional.position.z.toFixed(1); // Initialize text value
+		directionalIntensity.value = lights.directional.intensity;
+		directionalIntensityValue.textContent = lights.directional.intensity.toFixed(2);
+		directionalPosX.value = lights.directional.position.x;
+		directionalPosXValue.textContent = lights.directional.position.x.toFixed(1);
+		directionalPosY.value = lights.directional.position.y;
+		directionalPosYValue.textContent = lights.directional.position.y.toFixed(1);
+		directionalPosZ.value = lights.directional.position.z;
+		directionalPosZValue.textContent = lights.directional.position.z.toFixed(1); 
 
 		directionalIntensity.addEventListener('input', (e) => {
 			const value = parseFloat(e.target.value);
@@ -144,57 +144,76 @@ function main() {
 
 	setupLightControls();
 
-	// Load the 3D model with materials
-	let loadedModel = null; // Variable to store the loaded model
+	// Load the Drone 3D model with materials
+	let loadedDroneModel = null; // Variable to store the loaded drone model
 	{
 		const mtlLoader = new MTLLoader();
 		mtlLoader.setPath('obj/');
 		mtlLoader.load(
-			'Goldfish_01.mtl',
+			'Drone.mtl',
 			(materials) => {
 				materials.preload();
-				
+
 				const objLoader = new OBJLoader();
 				objLoader.setMaterials(materials);
 				objLoader.setPath('obj/');
 				objLoader.load(
-					'Goldfish_01.obj',
+					'Drone.obj',
 					(root) => {
-						console.log('Model loaded successfully:', root);
-						
-						// Scale the model
-						root.scale.set(50, 50, 50);
-						
-						// Position the model in front of the camera
-						root.position.set(0, 0, -5);
-						
+						console.log('Drone model loaded successfully:', root);
+
+						// Calculate bounding box to determine size and center
+						const box = new THREE.Box3().setFromObject(root);
+						const size = box.getSize(new THREE.Vector3());
+						const center = box.getCenter(new THREE.Vector3());
+
+						console.log('Drone model bounding box size:', size);
+						console.log('Drone model bounding box center:', center);
+
+						// size of the drone
+						const desiredSize = 5;
+
+						// Calculate a uniform scale factor based on the largest dimension
+						const maxDimension = Math.max(size.x, size.y, size.z);
+						const scaleFactor = desiredSize / maxDimension;
+
+						// Apply the scale factor to the model
+						root.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+						// Position the model by offsetting it so its center is at the desired world coordinate
+						const targetPosition = new THREE.Vector3(0, 2, 0);
+						root.position.copy(targetPosition).sub(center).add(root.position);
+
 						// Add the model to the scene
 						scene.add(root);
-						
+
 						// Model rotation
-						root.rotation.y = Math.PI / 4; 
-						
+						root.rotation.y = Math.PI / 4;
+
 						// Store the model reference
-						loadedModel = root;
-						
+						loadedDroneModel = root;
+
+						console.log('Drone model final position:', loadedDroneModel.position);
+						console.log('Drone model final scale:', loadedDroneModel.scale);
+
 					},
 					// Progress callback
 					(xhr) => {
-						console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+						console.log((xhr.loaded / xhr.total * 100) + '% Drone loaded');
 					},
 					// Error callback
 					(error) => {
-						console.error('Error loading model:', error);
+						console.error('Error loading Drone model:', error);
 					}
 				);
 			},
 			// Progress callback for MTL
 			(xhr) => {
-				console.log((xhr.loaded / xhr.total * 100) + '% materials loaded');
+				console.log((xhr.loaded / xhr.total * 100) + '% Drone materials loaded');
 			},
 			// Error callback for MTL
 			(error) => {
-				console.error('Error loading materials:', error);
+				console.error('Error loading Drone materials:', error);
 			}
 		);
 	}
@@ -281,10 +300,9 @@ function main() {
 		raycaster.setFromCamera(mouse, camera);
 
 		// Calculate objects intersecting the picking ray
-		// Combine all objects to check for intersection
 		const interactiveObjects = [...shapes];
-		if (loadedModel) {
-			loadedModel.traverse((child) => {
+		if (loadedDroneModel) {
+			loadedDroneModel.traverse((child) => {
 				if (child.isMesh) {
 					interactiveObjects.push(child);
 				}
@@ -302,7 +320,6 @@ function main() {
 
 			// Change the object's material color
 			if (intersectedObject.material) {
-
 				 if (intersectedObject.material.isMeshPhongMaterial) {
 					 if (!intersectedObject.material.map) {
 						 intersectedObject.material.color.set(randomColor);
@@ -324,6 +341,7 @@ function main() {
 						  intersectedObject.material = newMaterial;
 					 }
 				 } else {
+					 // Fallback for other material types if they have a color property
 					 if (intersectedObject.material.color) {
 						  intersectedObject.material.color.set(randomColor);
 					 }
@@ -347,9 +365,8 @@ function main() {
 		// Update controls
 		controls.update();
 
-		// Update shapes
+		// Update shapes (basic shapes)
 		shapes.forEach((shape, ndx) => {
-			// Check if shape is a Mesh before accessing properties
 			 if (shape.isMesh) {
 				const speed = 1 + ndx * 0.1;
 				const rot = time * speed;
@@ -358,9 +375,9 @@ function main() {
 			 }
 		});
 
-		// Animate the loaded model
-		if (loadedModel) {
-			 loadedModel.rotation.y = time * 0.5; // rotation speed
+		// Animate the loaded Drone model (example rotation)
+		if (loadedDroneModel) {
+			 loadedDroneModel.rotation.y = time * 0.5; // rotation speed
 		}
 
 		renderer.render(scene, camera);
