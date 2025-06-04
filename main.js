@@ -323,7 +323,6 @@ function main() {
 					 if (!intersectedObject.material.map) {
 						 intersectedObject.material.color.set(randomColor);
 					 } else {
-						 // Create a new material with the random color and without the texture map
 						 const newMaterial = new THREE.MeshPhongMaterial({
 							 color: randomColor,
 							 shininess: intersectedObject.material.shininess
@@ -340,7 +339,7 @@ function main() {
 						  intersectedObject.material = newMaterial;
 					 }
 				 } else {
-					 // Fallback for other material types if they have a color property
+					 // other material types if they have a color property
 					 if (intersectedObject.material.color) {
 						  intersectedObject.material.color.set(randomColor);
 					 }
