@@ -291,7 +291,6 @@ function main() {
 
 	// Handle click event
 	function onClick(event) {
-		// Calculate mouse position in normalized device coordinates (-1 to +1) for both components
 		const rect = renderer.domElement.getBoundingClientRect();
 		mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
 		mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -365,7 +364,7 @@ function main() {
 		// Update controls
 		controls.update();
 
-		// Update shapes (basic shapes)
+		// Update shapes
 		shapes.forEach((shape, ndx) => {
 			 if (shape.isMesh) {
 				const speed = 1 + ndx * 0.1;
@@ -375,7 +374,7 @@ function main() {
 			 }
 		});
 
-		// Animate the loaded Drone model (example rotation)
+		// Animate the loaded Drone model
 		if (loadedDroneModel) {
 			 loadedDroneModel.rotation.y = time * 0.5; // rotation speed
 		}

@@ -51,7 +51,7 @@ Potential areas for future development include:
 - Developed independently as part of CSE 160: Introduction to Computer Graphics at UC Santa Cruz.
 - Built upon the Three.js library and its official examples/addons.
 - Special thanks to the course instructors for their guidance and feedback.
-- 3D model (`Goldfish_01.obj`, `Goldfish_01.mtl`) obtained from [Poly Pizza](https://poly.pizza/m/DNbUoMtG3H).
+- 3D model (`Drone.obj`, `Drone.mtl`) obtained from [Poly Pizza](https://poly.pizza/m/DNbUoMtG3H).
 
 ---
 
