@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Raycaster } from 'three';
+import { Vector2 } from 'three';
 
 function main() {
 	// Setup renderer
@@ -153,7 +155,8 @@ function main() {
 
 	setupLightControls();
 
-	// Load the 3D model with materials
+	// Load the 3D model with materials (modified to store the model reference)
+	let loadedModel = null; // Variable to store the loaded model
 	{
 		const mtlLoader = new MTLLoader();
 		mtlLoader.setPath('obj/');
@@ -182,11 +185,13 @@ function main() {
 						// Make the model rotate
 						root.rotation.y = Math.PI / 4; // Initial rotation
 						
-						// Add the model to the animation loop
-						shapes.push({
-							mesh: root,
-							rotationSpeed: 0.5
-						});
+						// Store the model reference
+						loadedModel = root;
+
+						// Add the model to the animation loop (simplified for direct mesh access)
+						// Instead of pushing an object, push the mesh directly or modify render to handle it
+						// For simplicity, let's handle its rotation directly in the render loop
+						
 					},
 					// Progress callback
 					(xhr) => {
@@ -276,11 +281,90 @@ function main() {
 		return mesh;
 	}
 
+	// Setup Raycaster
+	const raycaster = new Raycaster();
+	const mouse = new Vector2();
+
+	// Handle click event
+	function onClick(event) {
+		// Calculate mouse position in normalized device coordinates (-1 to +1) for both components
+		// Ensure canvas is sized by CSS and not directly by renderer for accurate calculation
+		const rect = renderer.domElement.getBoundingClientRect();
+		mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+		mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+		// Update the picking ray with the camera and mouse position
+		raycaster.setFromCamera(mouse, camera);
+
+		// Calculate objects intersecting the picking ray
+		// Combine all objects to check for intersection
+		const interactiveObjects = [...shapes];
+		if (loadedModel) {
+			 // Assuming the loaded model might be a Group, we want to check its children
+			loadedModel.traverse((child) => {
+				if (child.isMesh) {
+					interactiveObjects.push(child);
+				}
+			});
+		}
+
+		const intersects = raycaster.intersectObjects(interactiveObjects);
+
+		if (intersects.length > 0) {
+			// Get the first intersected object (the closest one)
+			const intersectedObject = intersects[0].object;
+
+			// Generate a random color
+			const randomColor = new THREE.Color(Math.random(), Math.random(), Math.random());
+
+			// Change the object's material color
+			if (intersectedObject.material) {
+				 // Ensure the material has a color property and isn't a texture mapped material
+				 // If it has a map, changing color might not be visible unless we also remove the map or blend
+				 // For simplicity, let's just change the color, which works well for Phong materials without a map.
+				 // If the material has a map and we still want to change color, we might need to create a new material
+				 // or adjust uniforms if using more advanced shaders.
+				 
+				 // Let's prioritize changing the color if it's a MeshPhongMaterial and doesn't have a map
+				 // or create a new material if it has a map for a clearer visual change.
+
+				 if (intersectedObject.material.isMeshPhongMaterial) {
+					 if (!intersectedObject.material.map) {
+						 intersectedObject.material.color.set(randomColor);
+					 } else {
+						 // Create a new material with the random color and without the texture map
+						 const newMaterial = new THREE.MeshPhongMaterial({
+							 color: randomColor,
+							 shininess: intersectedObject.material.shininess // Keep shininess from old material
+						 });
+						 intersectedObject.material = newMaterial;
+					 }
+				 } else if (intersectedObject.material.isMeshBasicMaterial) {
+					  // Similar logic for Basic material
+					  if (!intersectedObject.material.map) {
+						 intersectedObject.material.color.set(randomColor);
+					 } else {
+						  const newMaterial = new THREE.MeshBasicMaterial({
+							 color: randomColor,
+						 });
+						  intersectedObject.material = newMaterial;
+					 }
+				 } else {
+					 // Fallback for other material types if they have a color property
+					 if (intersectedObject.material.color) {
+						  intersectedObject.material.color.set(randomColor);
+					 }
+				 }
+			}
+		}
+	}
+	canvas.addEventListener('click', onClick, false);
+
 	// Handle window resize
 	function onWindowResize() {
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
-		renderer.setSize(window.innerWidth, window.innerHeight);
+		// renderer.setSize(window.innerWidth, window.innerHeight); // Removed - size is fixed by CSS
 	}
 	window.addEventListener('resize', onWindowResize);
 
@@ -296,15 +380,20 @@ function main() {
 
 		// Update shapes
 		shapes.forEach((shape, ndx) => {
-			if (shape.mesh) {
-				shape.mesh.rotation.y = time * shape.rotationSpeed;
-			} else {
+			// Check if shape is a Mesh before accessing properties
+			 if (shape.isMesh) {
 				const speed = 1 + ndx * 0.1;
 				const rot = time * speed;
 				shape.rotation.x = rot;
 				shape.rotation.y = rot;
-			}
+			 }
 		});
+
+		// Animate the loaded model if it exists (handle rotation directly)
+		if (loadedModel) {
+			 // Assuming you want it to keep rotating even if not clicked
+			 loadedModel.rotation.y = time * 0.5; // Adjust rotation speed as needed
+		}
 
 		renderer.render(scene, camera);
 		requestAnimationFrame(render);
