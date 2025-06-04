@@ -38,74 +38,117 @@ function main() {
 
 	// Setup scene
 	const scene = new THREE.Scene();
-	scene.background = new THREE.Color(0x111111); // Slightly lighter background
 
-	// Create lights
+	// Loading textures (keeping existing textures and adding skybox texture)
+	const textureLoader = new THREE.TextureLoader();
+
+	const grayTexture = textureLoader.load('img/gray-texture.jpg');
+	grayTexture.colorSpace = THREE.SRGBColorSpace;
+
+	const blueTexture = textureLoader.load('img/blue-texture.jpg');
+	blueTexture.colorSpace = THREE.SRGBColorSpace;
+
+	// Load the panoramic skybox texture
+	const skyboxTexture = textureLoader.load('img/new-york-skybox.jpg', () => {
+		// Once the texture is loaded, set it as the scene background
+		scene.background = skyboxTexture;
+		skyboxTexture.mapping = THREE.EquirectangularReflectionMapping; // Use equirectangular mapping for panoramic image
+	});
+	skyboxTexture.colorSpace = THREE.SRGBColorSpace; // Set color space
+
+	// Create lights (Keeping Ambient, Directional, and Hemisphere)
 	const lights = {
-		ambient: new THREE.AmbientLight(0x404040, 1.0), // Increased intensity
-		directional: new THREE.DirectionalLight(0xffffff, 1.5), // Added directional light with intensity
-		hemisphere: new THREE.HemisphereLight(0xffffbb, 0x080820, 1), // Added hemisphere light with intensity
-		point: new THREE.PointLight(0xff0000, 1.5, 100), // Increased intensity
-		spot: new THREE.SpotLight(0xffffff, 1.5, 100, Math.PI / 6, 0.5, 1) // Increased intensity
+		ambient: new THREE.AmbientLight(0x404040, 1.0),
+		directional: new THREE.DirectionalLight(0xffffff, 1.5),
+		hemisphere: new THREE.HemisphereLight(0xffffbb, 0x080820, 1),
 	};
 
-	// Position lights
+	// Position lights initially
 	lights.directional.position.set(5, 5, 5);
-	lights.point.position.set(5, 5, 5);
-	lights.spot.position.set(-5, 5, -5);
-	lights.spot.target.position.set(0, 0, 0);
+	// Point and Spot light positions removed
 
 	// Add lights to scene
 	scene.add(lights.ambient);
 	scene.add(lights.directional);
 	scene.add(lights.hemisphere);
-	scene.add(lights.point);
-	scene.add(lights.spot);
-	scene.add(lights.spot.target);
+	// Point, Spot, and Spot target removed
 
-	// Setup light controls
+	// State variable for dynamic light movement (only applies to Directional now)
+	let dynamicLightMovementEnabled = false; // Default to static control
+	// Toggle light movement button removed, as directional is controlled by sliders
+
+	// Setup light controls functionality
 	function setupLightControls() {
+		// Global settings removed as only directional position is dynamic via sliders now
+		// Toggle light movement button listener removed
+
+		// Point light toggle removed
+
 		// Ambient light controls
-		const ambientLight = document.getElementById('ambient-light');
 		const ambientIntensity = document.getElementById('ambient-intensity');
-		ambientLight.addEventListener('input', (e) => {
+		const ambientIntensityValue = document.getElementById('ambient-intensity-value');
+		ambientIntensity.value = lights.ambient.intensity; // Initialize slider value
+		ambientIntensityValue.textContent = lights.ambient.intensity.toFixed(2); // Initialize text value
+		ambientIntensity.addEventListener('input', (e) => {
 			const value = parseFloat(e.target.value);
 			lights.ambient.intensity = value;
-			ambientIntensity.textContent = value.toFixed(1);
+			ambientIntensityValue.textContent = value.toFixed(2);
 		});
 
-		// Point light controls
-		const pointLight = document.getElementById('point-light');
-		const pointIntensity = document.getElementById('point-intensity');
-		const pointColor = document.getElementById('point-color');
-		
-		pointLight.addEventListener('input', (e) => {
+		// Directional light controls
+		const directionalIntensity = document.getElementById('directional-intensity');
+		const directionalIntensityValue = document.getElementById('directional-intensity-value');
+		const directionalPosX = document.getElementById('directional-pos-x');
+		const directionalPosXValue = document.getElementById('directional-pos-x-value');
+		const directionalPosY = document.getElementById('directional-pos-y');
+		const directionalPosYValue = document.getElementById('directional-pos-y-value');
+		const directionalPosZ = document.getElementById('directional-pos-z');
+		const directionalPosZValue = document.getElementById('directional-pos-z-value');
+
+		directionalIntensity.value = lights.directional.intensity; // Initialize slider value
+		directionalIntensityValue.textContent = lights.directional.intensity.toFixed(2); // Initialize text value
+		directionalPosX.value = lights.directional.position.x; // Initialize slider value
+		directionalPosXValue.textContent = lights.directional.position.x.toFixed(1); // Initialize text value
+		directionalPosY.value = lights.directional.position.y; // Initialize slider value
+		directionalPosYValue.textContent = lights.directional.position.y.toFixed(1); // Initialize text value
+		directionalPosZ.value = lights.directional.position.z; // Initialize slider value
+		directionalPosZValue.textContent = lights.directional.position.z.toFixed(1); // Initialize text value
+
+		directionalIntensity.addEventListener('input', (e) => {
 			const value = parseFloat(e.target.value);
-			lights.point.intensity = value;
-			pointIntensity.textContent = value.toFixed(1);
+			lights.directional.intensity = value;
+			directionalIntensityValue.textContent = value.toFixed(2);
 		});
 
-		pointColor.addEventListener('input', (e) => {
-			lights.point.color.set(e.target.value);
-		});
-
-		// Spot light controls
-		const spotLight = document.getElementById('spot-light');
-		const spotIntensity = document.getElementById('spot-intensity');
-		const spotAngle = document.getElementById('spot-angle-control');
-		const spotAngleValue = document.getElementById('spot-angle');
-
-		spotLight.addEventListener('input', (e) => {
+		directionalPosX.addEventListener('input', (e) => {
 			const value = parseFloat(e.target.value);
-			lights.spot.intensity = value;
-			spotIntensity.textContent = value.toFixed(1);
+			lights.directional.position.x = value;
+			directionalPosXValue.textContent = value.toFixed(1);
+		});
+		directionalPosY.addEventListener('input', (e) => {
+			const value = parseFloat(e.target.value);
+			lights.directional.position.y = value;
+			directionalPosYValue.textContent = value.toFixed(1);
+		});
+		directionalPosZ.addEventListener('input', (e) => {
+			const value = parseFloat(e.target.value);
+			lights.directional.position.z = value;
+			directionalPosZValue.textContent = value.toFixed(1);
 		});
 
-		spotAngle.addEventListener('input', (e) => {
-			const value = parseInt(e.target.value);
-			lights.spot.angle = (value * Math.PI) / 180;
-			spotAngleValue.textContent = value;
+		// Hemisphere light controls
+		const hemisphereIntensity = document.getElementById('hemisphere-intensity');
+		const hemisphereIntensityValue = document.getElementById('hemisphere-intensity-value');
+		hemisphereIntensity.value = lights.hemisphere.intensity; // Initialize slider value
+		hemisphereIntensityValue.textContent = lights.hemisphere.intensity.toFixed(2); // Initialize text value
+		hemisphereIntensity.addEventListener('input', (e) => {
+			const value = parseFloat(e.target.value);
+			lights.hemisphere.intensity = value;
+			hemisphereIntensityValue.textContent = value.toFixed(2);
 		});
+
+		// Point light controls removed
+		// Spot light controls removed
 	}
 
 	setupLightControls();
@@ -165,14 +208,6 @@ function main() {
 			}
 		);
 	}
-
-	// Loading textures
-	const textureLoader = new THREE.TextureLoader();
-	const grayTexture = textureLoader.load('img/gray-texture.jpg');
-	grayTexture.colorSpace = THREE.SRGBColorSpace;
-
-	const blueTexture = textureLoader.load('img/blue-texture.jpg');
-	blueTexture.colorSpace = THREE.SRGBColorSpace;
 
 	// Create different types of geometries
 	const geometries = {
@@ -256,13 +291,8 @@ function main() {
 		// Update controls
 		controls.update();
 
-		// Update lights (assuming you still want them to move)
-		lights.point.position.x = Math.sin(time * 0.5) * 7; // Adjusted movement
-		lights.point.position.z = Math.cos(time * 0.5) * 7; // Adjusted movement
-
-		lights.spot.position.x = Math.sin(time * 0.7 + Math.PI) * 6; // Adjusted movement
-		lights.spot.position.z = Math.cos(time * 0.7 + Math.PI) * 6; // Adjusted movement
-		lights.spot.target.position.y = Math.sin(time * 0.3) * 2; // Make spot target move slightly
+		// No dynamic light updates for the remaining lights in the render loop
+		// Directional light position is controlled by sliders now
 
 		// Update shapes
 		shapes.forEach((shape, ndx) => {
