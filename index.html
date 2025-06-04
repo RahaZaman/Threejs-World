@@ -22,6 +22,38 @@
         </ul>
     </div>
 
+    <div class="light-controls">
+        <h2>Light Controls</h2>
+        <div class="light-section">
+            <h3>Ambient Light</h3>
+            <div class="control-group">
+                <label>Intensity: <span id="ambient-intensity">0.5</span></label>
+                <input type="range" id="ambient-light" min="0" max="1" step="0.1" value="0.5">
+            </div>
+        </div>
+        <div class="light-section">
+            <h3>Point Light</h3>
+            <div class="control-group">
+                <label>Intensity: <span id="point-intensity">1.0</span></label>
+                <input type="range" id="point-light" min="0" max="2" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>Color: <input type="color" id="point-color" value="#ff0000"></label>
+            </div>
+        </div>
+        <div class="light-section">
+            <h3>Spot Light</h3>
+            <div class="control-group">
+                <label>Intensity: <span id="spot-intensity">1.0</span></label>
+                <input type="range" id="spot-light" min="0" max="2" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>Angle: <span id="spot-angle">30</span>°</label>
+                <input type="range" id="spot-angle-control" min="0" max="90" step="1" value="30">
+            </div>
+        </div>
+    </div>
+
     <script type="importmap">
     {
         "imports": {

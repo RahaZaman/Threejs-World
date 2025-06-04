@@ -38,29 +38,77 @@ function main() {
 
 	// Setup scene
 	const scene = new THREE.Scene();
-	scene.background = new THREE.Color(0x000000);
+	scene.background = new THREE.Color(0x111111); // Slightly lighter background
 
-	// Add different types of lights
-	{
-		// Ambient light for overall scene illumination
-		const ambientLight = new THREE.AmbientLight(0x404040, 1);
-		scene.add(ambientLight);
+	// Create lights
+	const lights = {
+		ambient: new THREE.AmbientLight(0x404040, 1.0), // Increased intensity
+		directional: new THREE.DirectionalLight(0xffffff, 1.5), // Added directional light with intensity
+		hemisphere: new THREE.HemisphereLight(0xffffbb, 0x080820, 1), // Added hemisphere light with intensity
+		point: new THREE.PointLight(0xff0000, 1.5, 100), // Increased intensity
+		spot: new THREE.SpotLight(0xffffff, 1.5, 100, Math.PI / 6, 0.5, 1) // Increased intensity
+	};
 
-		// Directional light (like sun)
-		const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-		directionalLight.position.set(5, 5, 5);
-		directionalLight.castShadow = true;
-		scene.add(directionalLight);
+	// Position lights
+	lights.directional.position.set(5, 5, 5);
+	lights.point.position.set(5, 5, 5);
+	lights.spot.position.set(-5, 5, -5);
+	lights.spot.target.position.set(0, 0, 0);
 
-		// Point light for localized lighting
-		const pointLight = new THREE.PointLight(0xff0000, 1, 100);
-		pointLight.position.set(-5, 5, -5);
-		scene.add(pointLight);
+	// Add lights to scene
+	scene.add(lights.ambient);
+	scene.add(lights.directional);
+	scene.add(lights.hemisphere);
+	scene.add(lights.point);
+	scene.add(lights.spot);
+	scene.add(lights.spot.target);
 
-		// Hemisphere light for sky/ground color influence
-		const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-		scene.add(hemisphereLight);
+	// Setup light controls
+	function setupLightControls() {
+		// Ambient light controls
+		const ambientLight = document.getElementById('ambient-light');
+		const ambientIntensity = document.getElementById('ambient-intensity');
+		ambientLight.addEventListener('input', (e) => {
+			const value = parseFloat(e.target.value);
+			lights.ambient.intensity = value;
+			ambientIntensity.textContent = value.toFixed(1);
+		});
+
+		// Point light controls
+		const pointLight = document.getElementById('point-light');
+		const pointIntensity = document.getElementById('point-intensity');
+		const pointColor = document.getElementById('point-color');
+		
+		pointLight.addEventListener('input', (e) => {
+			const value = parseFloat(e.target.value);
+			lights.point.intensity = value;
+			pointIntensity.textContent = value.toFixed(1);
+		});
+
+		pointColor.addEventListener('input', (e) => {
+			lights.point.color.set(e.target.value);
+		});
+
+		// Spot light controls
+		const spotLight = document.getElementById('spot-light');
+		const spotIntensity = document.getElementById('spot-intensity');
+		const spotAngle = document.getElementById('spot-angle-control');
+		const spotAngleValue = document.getElementById('spot-angle');
+
+		spotLight.addEventListener('input', (e) => {
+			const value = parseFloat(e.target.value);
+			lights.spot.intensity = value;
+			spotIntensity.textContent = value.toFixed(1);
+		});
+
+		spotAngle.addEventListener('input', (e) => {
+			const value = parseInt(e.target.value);
+			lights.spot.angle = (value * Math.PI) / 180;
+			spotAngleValue.textContent = value;
+		});
 	}
+
+	setupLightControls();
 
 	// Load the 3D model with materials
 	{
@@ -203,17 +251,24 @@ function main() {
 
 	// Animation loop
 	function render(time) {
-		time *= 0.001; // convert time to seconds
+		time *= 0.001;
 
 		// Update controls
 		controls.update();
 
+		// Update lights (assuming you still want them to move)
+		lights.point.position.x = Math.sin(time * 0.5) * 7; // Adjusted movement
+		lights.point.position.z = Math.cos(time * 0.5) * 7; // Adjusted movement
+
+		lights.spot.position.x = Math.sin(time * 0.7 + Math.PI) * 6; // Adjusted movement
+		lights.spot.position.z = Math.cos(time * 0.7 + Math.PI) * 6; // Adjusted movement
+		lights.spot.target.position.y = Math.sin(time * 0.3) * 2; // Make spot target move slightly
+
+		// Update shapes
 		shapes.forEach((shape, ndx) => {
 			if (shape.mesh) {
-				// Handle the 3D model
 				shape.mesh.rotation.y = time * shape.rotationSpeed;
 			} else {
-				// Handle the regular shapes
 				const speed = 1 + ndx * 0.1;
 				const rot = time * speed;
 				shape.rotation.x = rot;
